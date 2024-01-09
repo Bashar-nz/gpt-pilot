@@ -22,3 +22,5 @@ Technology Preferences: In scenarios where multiple technology options are avail
 - Socket.io
 
 {{no_microservices}}
+
+On the frontend, prefer vanilla JavScript over a framework such as React, Vue, Angular or Svelte unless project details explicitly requires it.

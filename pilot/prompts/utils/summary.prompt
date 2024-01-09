@@ -1,3 +1,6 @@
-Based on the following conversation, write a summary:
+Based on the following conversation, write a project description:
 
 ``` {{conversation}} ```
+
+**IMPORTANT**
+Make sure that you don't exclude any information from the conversation. If you do, you will not be able to complete the project.
