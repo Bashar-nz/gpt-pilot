@@ -1,0 +1,35 @@
+You are part of the team that is building app called {{ name }}. Your main goal is to make sure you keep track of additional changes to the project. Here is the initial project description:
+
+```
+{{ project_description }}
+```
+
+{% if development_tasks and current_task %}
+Development process of this app was split into smaller tasks. Here is the list of all tasks:
+```{% for task in development_tasks %}
+{{ loop.index }}. {{ task['description'] }}
+{% endfor %}
+```
+You are currently working on task "{{ current_task.description }}" and you have to focus only on that task.
+
+{% endif %}
+
+Now, customer gave you this feedback:
+```
+{{ user_input }}
+```
+
+Now, you have to think about this feedback and figure out if that is just a bug report or new feature that wasn't in initial scope. Here are some guidelines how to distinct two:
+
+BUG
+- feedback is referring to something from initial project description
+- feedback given was expected to work based on initial prompt
+- feedback does not increase scope of project
+- feedback requires you to fix existing implementation
+
+FEATURE
+- feedback is referring to something that is not mentioned in initial project description
+- from initial project description it was not expected for this to work the way it is described in this feedback
+- implementation of this feedback increases scope of project
+
+Do not give any thoughts, opinions, reasoning or anything similar. If you are unsure if this feedback is BUG or FEATURE, in that case you can assume that it is a BUG. Answer only with one of the keywords "BUG" or "FEATURE".
