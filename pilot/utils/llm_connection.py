@@ -18,6 +18,8 @@ from utils.utils import fix_json, get_prompt
 from utils.function_calling import add_function_calls_to_request, FunctionCallSet, FunctionType
 from utils.questionary import styled_text
 
+import anthropic
+
 from .telemetry import telemetry
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -134,7 +136,45 @@ def create_gpt_chat_completion(messages: List[dict], req_type, project,
         prompt_data['function_call_message'] = function_call_message
 
     try:
-        response = stream_gpt_completion(gpt_data, req_type, project)
+        # response = stream_gpt_completion(gpt_data, req_type, project)
+        client = anthropic.Anthropic()
+
+        claude_system = "You are a software development AI assistant."
+        claude_messages = messages
+        if messages[0]["role"] == "system":
+            claude_system = messages[0]["content"]
+            claude_messages = messages[1:]
+
+        if len(claude_messages):
+            cm2 = [claude_messages[0]]
+            for i in range(1, len(claude_messages)):
+                if cm2[-1]["role"] == claude_messages[i]["role"]:
+                    cm2[-1]["content"] += "\n\n" + claude_messages[i]["content"]
+                else:
+                    cm2.append(claude_messages[i])
+            claude_messages = cm2
+
+        response = ""
+        with client.messages.stream(
+            model="claude-3-sonnet-20240229",
+            max_tokens=4096,
+            temperature=0.5,
+            system=claude_system,
+            messages=claude_messages,
+        ) as stream:
+            for chunk in stream.text_stream:
+                print(chunk, type='stream', end='', flush=True)
+                response += chunk
+
+        if function_call_message is not None:
+            try:
+                response = clean_json_response(response)
+                assert_json_schema(response, gpt_data["functions"])
+            except Exception as err:
+                print("ERROR", err)
+                raise RuntimeError("test")
+
+        response = {"text": response}
 
         # Remove JSON schema and any added retry messages
         while len(messages) > messages_length:
