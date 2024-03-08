@@ -19,6 +19,7 @@ from utils.function_calling import add_function_calls_to_request, FunctionCallSe
 from utils.questionary import styled_text
 
 import anthropic
+import groq
 
 from .telemetry import telemetry
 
@@ -137,8 +138,8 @@ def create_gpt_chat_completion(messages: List[dict], req_type, project,
 
     try:
         # response = stream_gpt_completion(gpt_data, req_type, project)
-        client = anthropic.Anthropic()
-
+        # client = anthropic.Anthropic()
+        """
         claude_system = "You are a software development AI assistant."
         claude_messages = messages
         if messages[0]["role"] == "system":
@@ -173,6 +174,32 @@ def create_gpt_chat_completion(messages: List[dict], req_type, project,
             except Exception as err:
                 print("ERROR", err)
                 raise RuntimeError("test")
+
+        response = {"text": response}
+        """
+
+        client = groq.Groq(api_key=os.getenv('GROQ_API_KEY'))
+        stream = client.chat.completions.create(
+            messages=messages,
+            model="mixtral-8x7b-32768",
+            temperature=0.5,
+            max_tokens=2047,
+            stream=True,
+        )
+        response = ""
+        for chunk in stream:
+            c = chunk.choices[0].delta.content
+            if c:
+                response += c
+                print(c, type='stream', end='', flush=True)
+
+        if function_call_message is not None:
+            try:
+                response = clean_json_response(response)
+                assert_json_schema(response, gpt_data["functions"])
+            except Exception as err:
+                # print("ERROR", err)
+                raise
 
         response = {"text": response}
 
